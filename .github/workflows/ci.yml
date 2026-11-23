@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # Python env (numpy, scipy, matplotlib, pytest, TeNPy) from pyproject.toml / uv.lock.
+      - name: Python environment
+        run: uv sync
+
+      # C++ unit tests: Debug build with AddressSanitizer + UBSan (set in CMakeLists.txt).
+      - name: Configure (Debug, sanitizers)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build C++ tests
+        run: cmake --build build -j 3
+
+      - name: Run C++ tests
+        run: ctest --test-dir build --output-on-failure -j 2
+
+      # Python extension: Release only (a sanitized .so cannot be loaded by stock Python).
+      - name: Configure (Release, Python extension)
+        run: >
+          cmake -S . -B build-rel -DCMAKE_BUILD_TYPE=Release
+          -DPython_EXECUTABLE=$PWD/.venv/bin/python
+
+      - name: Build Python extension
+        run: cmake --build build-rel --target _mps -j 3
+
+      - name: Run Python tests
+        run: uv run pytest -q
