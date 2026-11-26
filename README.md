@@ -1,6 +1,6 @@
 # mps: a Matrix Product State simulator for neutral-atom circuits
 
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
+[![CI](https://github.com/d1stinc8/mps/actions/workflows/ci.yml/badge.svg)](https://github.com/d1stinc8/mps/actions/workflows/ci.yml)
 
 A C++20 MPS simulator with pybind11 bindings, built for the low-entanglement regime that
 neutral-atom (Rydberg) platforms run: quench dynamics, adiabatic state preparation, shallow circuits.
